@@ -19,7 +19,7 @@ function getProduct() {
 
 const productWrap = document.querySelector(".productWrap");
 
-//渲染到畫面上
+//商品資訊渲染到畫面上
 function renderProducts(data) {
   let str = "";
   data.forEach((item) => {
@@ -102,6 +102,7 @@ disCardAllBtn.addEventListener("click", (e) => {
   // console.log();
   deleteAllCart();
 });
+
 //渲染購物車
 let cartData = [];
 
@@ -122,7 +123,6 @@ const shoppingCartTableBody = document.querySelector(
   ".shoppingCart-table tbody"
 );
 const totalPriceElement = document.querySelector(".totalPrice");
-
 
 function renderCart() {
   if (cartData.length === 0) {
@@ -154,7 +154,7 @@ function renderCart() {
               <td>${item.quantity}</td>
               <td>NT$${item.product.price}</td>
               <td class="discardBtn">
-                <a href="#" class="material-icons"> clear </a>
+                <a href="#" data-id="${item.id}" class="material-icons"> clear </a>
               </td>
             </tr>
          `;
@@ -166,6 +166,22 @@ function renderCart() {
   totalPriceElement.textContent = `NT$${totalPrice.toLocaleString()}`;
 }
 
+//刪除單一購物車選項(需要代入一個ID的值)
+function deleteCart(id) {
+  axios.delete(`${customerApi}/carts/${id}`).then((res) => {
+    // console.log(res);
+    cartData = res.data.carts;
+    renderCart();
+  });
+}
+
+shoppingCartTableBody.addEventListener("click",(e)=>{
+  e.preventDefault();
+  if(e.target.hasAttribute("data-id")){
+    deleteCart(e.target.dataset.id)
+  }
+  // console.log(e.target)
+})
 //初始化管理
 function init() {
   getProduct();
