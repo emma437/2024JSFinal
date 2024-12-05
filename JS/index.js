@@ -69,23 +69,39 @@ function addCart(id) {
     },
   };
   axios
-    .post(`${customerApi}/carts`,data)
+    .post(`${customerApi}/carts`, data)
     .then((res) => {
-      console.log(res.data);
-      cartData(res.data.carts);
-      rederCart();
+      // console.log(res.data);
+      cartData = res.data.carts;
+      renderCart();
     })
     .catch((err) => {
       console.log(err);
     });
 }
 
-productWrap.addEventListener('click',(e) =>{
+productWrap.addEventListener("click", (e) => {
   e.preventDefault();
   console.log(e.target.dataset.id);
   addCart(e.target.dataset.id);
 });
 
+//刪除所有購物車內容
+const disCardAllBtn = document.querySelector(".discardAllBtn");
+
+function deleteAllCart() {
+  axios.delete(`${customerApi}/carts`).then((res) => {
+    console.log(res);
+    cartData = res.data.carts;
+    renderCart();
+  });
+}
+
+disCardAllBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  // console.log();
+  deleteAllCart();
+});
 //渲染購物車
 let cartData = [];
 
@@ -95,7 +111,7 @@ function getCart() {
     .then((res) => {
       // console.log(res.data);
       cartData = res.data.carts;
-      rederCart();
+      renderCart();
     })
     .catch((err) => {
       console.log(err);
@@ -105,9 +121,26 @@ function getCart() {
 const shoppingCartTableBody = document.querySelector(
   ".shoppingCart-table tbody"
 );
+const totalPriceElement = document.querySelector(".totalPrice");
 
-function rederCart() {
+
+function renderCart() {
+  if (cartData.length === 0) {
+    shoppingCartTableBody.innerHTML = "購物車沒有商品";
+    //將購物車按鈕設為disable
+    disCardAllBtn.classList.add("disabled");
+    disCardAllBtn.style.pointerEvents = "none";
+    //總金額設定為0
+    totalPriceElement.textContent = "NT$0";
+
+    return;
+  }
+  //有商品時確保按鈕可以點擊
+  disCardAllBtn.classList.remove("disabled");
+  disCardAllBtn.style.pointerEvents = "auto";
+
   let str = "";
+  let totalPrice = 0;
   cartData.forEach((item) => {
     str += `
             <tr>
@@ -125,8 +158,12 @@ function rederCart() {
               </td>
             </tr>
          `;
+    totalPrice += item.product.price * item.quantity;
   });
   shoppingCartTableBody.innerHTML = str;
+
+  //更新金額
+  totalPriceElement.textContent = `NT$${totalPrice.toLocaleString()}`;
 }
 
 //初始化管理
