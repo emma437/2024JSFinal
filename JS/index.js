@@ -29,7 +29,7 @@ function renderProducts(data) {
             src="${item.images}"
             alt=""
           />
-          <a href="#" class="addCardBtn">加入購物車</a>
+          <a href="#" class="addCardBtn" data-id="${item.id}">加入購物車</a>
           <h3>${item.title}</h3>
           <del class="originPrice">NT$${item.origin_price}</del>
           <p class="nowPrice">NT$${item.price}</p>
@@ -56,7 +56,34 @@ function filterProduct(value) {
 
 productSelect.addEventListener("change", (e) => {
   filterProduct(e.target.value);
-  console.log(e.target.value);
+  // console.log(e.target.value);
+});
+
+//加入購物車
+//post需要帶入文件(依照對方需求模式)
+function addCart(id) {
+  const data = {
+    data: {
+      productId: id,
+      quantity: 1,
+    },
+  };
+  axios
+    .post(`${customerApi}/carts`,data)
+    .then((res) => {
+      console.log(res.data);
+      cartData(res.data.carts);
+      rederCart();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+productWrap.addEventListener('click',(e) =>{
+  e.preventDefault();
+  console.log(e.target.dataset.id);
+  addCart(e.target.dataset.id);
 });
 
 //渲染購物車
@@ -66,18 +93,46 @@ function getCart() {
   axios
     .get(`${customerApi}/carts`)
     .then((res) => {
-      console.log(res.data.carts);
+      // console.log(res.data);
       cartData = res.data.carts;
+      rederCart();
     })
     .catch((err) => {
       console.log(err);
     });
 }
 
+const shoppingCartTableBody = document.querySelector(
+  ".shoppingCart-table tbody"
+);
+
+function rederCart() {
+  let str = "";
+  cartData.forEach((item) => {
+    str += `
+            <tr>
+              <td>
+                <div class="cardItem-title">
+                  <img src="${item.product.images}" alt="" />
+                  <p>${item.product.title}</p>
+                </div>
+              </td>
+              <td>NT$${item.product.origin_price}</td>
+              <td>${item.quantity}</td>
+              <td>NT$${item.product.price}</td>
+              <td class="discardBtn">
+                <a href="#" class="material-icons"> clear </a>
+              </td>
+            </tr>
+         `;
+  });
+  shoppingCartTableBody.innerHTML = str;
+}
+
 //初始化管理
 function init() {
   getProduct();
-  getCart() 
+  getCart();
 }
 
 init();
