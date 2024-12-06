@@ -168,64 +168,141 @@ function renderCart() {
 
 //刪除單一購物車選項(需要代入一個ID的值)
 function deleteCart(id) {
-  axios.delete(`${customerApi}/carts/${id}`).then((res) => {
-    // console.log(res);
-    cartData = res.data.carts;
-    renderCart();
-  }).catch((err) => {
-    console.log(err);
-  });
+  axios
+    .delete(`${customerApi}/carts/${id}`)
+    .then((res) => {
+      // console.log(res);
+      cartData = res.data.carts;
+      renderCart();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 }
 
-//編輯產品數量
+//編輯產品數量 +-按鈕，可更改數量
 function updateCart(id, qty) {
   //需要帶入data參數
   const data = {
-    "data": {
+    data: {
       id,
-      "quantity": qty
-    }
+      quantity: qty,
+    },
   };
   //寫入自己要帶的參數
-  axios.patch(`${customerApi}/carts`, data).then((res) => {
-    // console.log(res);
-    cartData = res.data.carts;
-    renderCart();
-  }).catch((err) => {
-    console.log(err);
-  });
+  axios
+    .patch(`${customerApi}/carts`, data)
+    .then((res) => {
+      // console.log(res);
+      cartData = res.data.carts;
+      renderCart();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 }
 
+//監聽
 shoppingCartTableBody.addEventListener("click", (e) => {
-  const id =e.target.closest('tr').getAttribute('data-id')
+  const id = e.target.closest("tr").getAttribute("data-id");
   e.preventDefault();
+  //刪除單一購物車內容
   if (e.target.classList.contains("deleteBtn")) {
     deleteCart(id);
   }
   //新增數量
   if (e.target.classList.contains("plusBtn")) {
-   let result = {};
-    cartData.forEach(item =>{
-    if(item.id === id){
-      result = item;
-    }
-   })
-   let qty = result.quantity + 1 ;
-   updateCart(id, qty);
+    let result = {};
+    cartData.forEach((item) => {
+      if (item.id === id) {
+        result = item;
+      }
+    });
+    let qty = result.quantity + 1;
+    updateCart(id, qty);
   }
-//減少數量
+  //減少數量
   if (e.target.classList.contains("minusBtn")) {
     let result = {};
-     cartData.forEach(item =>{
-     if(item.id === id){
-       result = item;
-     }
-    })
-    let qty = result.quantity - 1 ;
+    cartData.forEach((item) => {
+      if (item.id === id) {
+        result = item;
+      }
+    });
+    let qty = result.quantity - 1;
     updateCart(id, qty);
-   }
+  }
   // console.log(e.target)
 });
+
+const orderInfoForm = document.querySelector(".orderInfo-form");
+const orderInfoBtn = document.querySelector(".orderInfo-btn");
+//validate驗證表單
+function checkForm() {
+  const constraints = {
+    姓名: {
+      presence: { message: "^必填" },
+    },
+    電話: {
+      presence: { message: "^必填" },
+    },
+    Email: {
+      presence: { message: "^必填" },
+      email: { message: "^請輸入正確的信箱格式" },
+    },
+    寄送地址: {
+      presence: { message: "^必填" },
+    },
+  };
+  const error = validate(orderInfoForm, constraints);
+  console.log(error);
+  return error;
+}
+
+function sendOrder() {
+  if (cartData.length === 0) {
+    alert("購物車不得為空");
+    return;
+  }
+  if (checkForm()) {
+    alert("表單必填項目務必填寫");
+    return;
+  }
+
+  //post需帶入資料
+  const customerName = document.querySelector("#customerName");
+  const customerPhone = document.querySelector("#customerPhone");
+  const customerEmail = document.querySelector("#customerEmail");
+  const customerAddress = document.querySelector("#customerAddress");
+  const tradeWay = document.querySelector("#tradeWay");
+
+  const data = {
+    data: {
+      user: {
+        name: customerName.value.trim(),
+        tel: customerPhone.value.trim(),
+        email: customerEmail.value.trim(),
+        address: customerAddress.value.trim(),
+        payment: tradeWay.value,
+      },
+    },
+  };
+  axios
+    .post(`${customerApi}/orders`, data)
+    .then((res) => {
+      console.log(res);
+    })
+    .catch((err) => {
+      console.log("錯誤訊息：", err.response.data);
+    });
+}
+
+//事件綁定
+orderInfoBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  sendOrder();
+});
+
 //初始化管理
 function init() {
   getProduct();
