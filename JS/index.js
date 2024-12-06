@@ -143,7 +143,7 @@ function renderCart() {
   let totalPrice = 0;
   cartData.forEach((item) => {
     str += `
-            <tr>
+            <tr data-id="${item.id}">
               <td>
                 <div class="cardItem-title">
                   <img src="${item.product.images}" alt="" />
@@ -151,10 +151,10 @@ function renderCart() {
                 </div>
               </td>
               <td>NT$${item.product.origin_price}</td>
-              <td>${item.quantity}</td>
+              <td><button type="button" class="minusBtn">-</button>${item.quantity}<button type="button" class="plusBtn">+</button ></td>
               <td>NT$${item.product.price}</td>
               <td class="discardBtn">
-                <a href="#" data-id="${item.id}" class="material-icons"> clear </a>
+                <a href="#" class="material-icons deleteBtn"> clear </a>
               </td>
             </tr>
          `;
@@ -172,16 +172,60 @@ function deleteCart(id) {
     // console.log(res);
     cartData = res.data.carts;
     renderCart();
+  }).catch((err) => {
+    console.log(err);
   });
 }
 
-shoppingCartTableBody.addEventListener("click",(e)=>{
+//編輯產品數量
+function updateCart(id, qty) {
+  //需要帶入data參數
+  const data = {
+    "data": {
+      id,
+      "quantity": qty
+    }
+  };
+  //寫入自己要帶的參數
+  axios.patch(`${customerApi}/carts`, data).then((res) => {
+    // console.log(res);
+    cartData = res.data.carts;
+    renderCart();
+  }).catch((err) => {
+    console.log(err);
+  });
+}
+
+shoppingCartTableBody.addEventListener("click", (e) => {
+  const id =e.target.closest('tr').getAttribute('data-id')
   e.preventDefault();
-  if(e.target.hasAttribute("data-id")){
-    deleteCart(e.target.dataset.id)
+  if (e.target.classList.contains("deleteBtn")) {
+    deleteCart(id);
   }
+  //新增數量
+  if (e.target.classList.contains("plusBtn")) {
+   let result = {};
+    cartData.forEach(item =>{
+    if(item.id === id){
+      result = item;
+    }
+   })
+   let qty = result.quantity + 1 ;
+   updateCart(id, qty);
+  }
+//減少數量
+  if (e.target.classList.contains("minusBtn")) {
+    let result = {};
+     cartData.forEach(item =>{
+     if(item.id === id){
+       result = item;
+     }
+    })
+    let qty = result.quantity - 1 ;
+    updateCart(id, qty);
+   }
   // console.log(e.target)
-})
+});
 //初始化管理
 function init() {
   getProduct();
