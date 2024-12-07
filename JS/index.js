@@ -1,7 +1,3 @@
-//客製化路徑
-const baseUrl = "https://livejs-api.hexschool.io";
-const apiPath = "emma";
-const customerApi = `${baseUrl}/api/livejs/v1/customer/${apiPath}`;
 
 const Toast = Swal.mixin({
   toast: true,
