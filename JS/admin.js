@@ -6,9 +6,9 @@ function getOrder() {
   axios
     .get(`${adminApi}/orders`, headers)
     .then((res) => {
-      console.log(res);
+      //   console.log(res);
       orderData = res.data.orders;
-      renderOrder();
+      renderOrders();
     })
     .catch((err) => {
       console.log(err);
@@ -16,7 +16,7 @@ function getOrder() {
 }
 
 //渲染到畫面上
-function renderOrder() {
+function renderOrders() {
   let str = "";
   orderData.forEach((order) => {
     let productStr = "";
@@ -24,7 +24,7 @@ function renderOrder() {
     order.products.forEach((product) => {
       productStr += `<p>${product.title}</p> x ${product.quantity}`;
     });
-    str += `<tr>
+    str += `<tr data-id ="${order.id}">
             <td>${order.id}</td>
             <td>
               <p>${order.user.name}</p>
@@ -37,7 +37,11 @@ function renderOrder() {
             </td>
             <td>${formatTime(order.createdAt)}</td>
             <td class="orderStatus">
-              <a href="#">${order.paid ? "已處理" : "未處理"}</a>
+              <a href="#">${
+                order.paid
+                  ? `<span style="color:green">已處理</span>`
+                  : `<span style="color:red">未處理</span>`
+              }</a>
             </td>
             <td>
               <input type="button" class="delSingleOrder-Btn" value="刪除">
@@ -59,9 +63,97 @@ function formatTime(timestamp) {
   )}:${time.getSeconds()}`;
 }
 
-console.log(formatTime(1733292707));
+//刪除全部購物車
+const disCardAllBtn = document.querySelector(".discardAllBtn");
 
-getOrder();
+function deleteAllCart() {
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      axios.delete(`${adminApi}/orders`, headers).then((res) => {
+        // console.log(res);
+        orderData = res.data.orders;
+        renderOrders();
+      });
+      Swal.fire({
+        title: "Deleted!",
+        text: "Your file has been deleted.",
+        icon: "success",
+      });
+    }
+  });
+}
+
+disCardAllBtn.addEventListener("click", (e) => {
+  e.preventDefault();
+  // console.log();
+  deleteAllCart();
+});
+
+//刪除單筆訂單
+function deleteOrder(id) {
+  axios
+    .delete(`${adminApi}/orders/${id}`, headers)
+    .then((res) => {
+      // console.log(res);
+      orderData = res.data.orders;
+      renderOrders();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+//修改訂單狀態
+function updateOrderStatus(id) {
+  //使用 filter
+  const filteredOrders = orderData.filter((order) => order.id === id);
+  const result = filteredOrders.length > 0 ? filteredOrders[0] : null;
+  // console.log(result.paid)
+  const data = {
+    data: {
+      id: id,
+      paid: !result.paid,
+    },
+  };
+  axios
+    .put(`${adminApi}/orders`, data, headers)
+    .then((res) => {
+      // console.log(res)
+      orderData = res.data.orders;
+      renderOrders();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+}
+
+
+orderPageTableBody.addEventListener("click", (e) => {
+  e.preventDefault();
+  // console.log(e.target);
+  const id = e.target.closest("tr").getAttribute("data-id");
+  if (e.target.classList.contains("delSingleOrder-Btn")) {
+    deleteOrder(id);
+  }
+  if (e.target.nodeName === "SPAN") {
+    updateOrderStatus(id);
+  }
+});
+
+//初始化
+function init() {
+  getOrder();
+}
+
+init();
 
 // C3.js
 let chart = c3.generate({
