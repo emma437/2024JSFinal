@@ -3,6 +3,18 @@ const baseUrl = "https://livejs-api.hexschool.io";
 const apiPath = "emma";
 const customerApi = `${baseUrl}/api/livejs/v1/customer/${apiPath}`;
 
+const Toast = Swal.mixin({
+  toast: true,
+  position: "top-end",
+  showConfirmButton: false,
+  timer: 3000,
+  timerProgressBar: true,
+  didOpen: (toast) => {
+    toast.onmouseenter = Swal.stopTimer;
+    toast.onmouseleave = Swal.resumeTimer;
+  },
+});
+
 let productsData = [];
 
 function getProduct() {
@@ -62,6 +74,8 @@ productSelect.addEventListener("change", (e) => {
 //加入購物車
 //post需要帶入文件(依照對方需求模式)
 function addCart(id) {
+  const addCartBtns = document.querySelectorAll(".addCardBtn");
+  addCartBtns.forEach((item) => item.classList.add("disabled"));
   const data = {
     data: {
       productId: id,
@@ -74,6 +88,12 @@ function addCart(id) {
       // console.log(res.data);
       cartData = res.data.carts;
       renderCart();
+      Toast.fire({
+        icon: "success",
+        title: "商品已成功加入購物車",
+      });
+      addCartBtns.forEach((item) => item.classList.remove("disabled"));
+
     })
     .catch((err) => {
       console.log(err);
@@ -82,18 +102,39 @@ function addCart(id) {
 
 productWrap.addEventListener("click", (e) => {
   e.preventDefault();
-  console.log(e.target.dataset.id);
-  addCart(e.target.dataset.id);
+  // console.log(e.target);
+  if (e.target.classList.contains("addCardBtn")) {
+    console.log(e.target.dataset.id);
+    addCart(e.target.dataset.id);
+  }
 });
 
 //刪除所有購物車內容
 const disCardAllBtn = document.querySelector(".discardAllBtn");
 
 function deleteAllCart() {
-  axios.delete(`${customerApi}/carts`).then((res) => {
-    console.log(res);
-    cartData = res.data.carts;
-    renderCart();
+  Swal.fire({
+    title: "Are you sure?",
+    text: "You won't be able to revert this!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#3085d6",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Yes, delete it!",
+  }).then((result) => {
+    //isConfirmed接著後續動作
+    if (result.isConfirmed) {
+      axios.delete(`${customerApi}/carts`).then((res) => {
+        console.log(res);
+        cartData = res.data.carts;
+        renderCart();
+      });
+      Swal.fire({
+        title: "Deleted!",
+        text: "Your file has been deleted.",
+        icon: "success",
+      });
+    }
   });
 }
 
@@ -291,6 +332,7 @@ function sendOrder() {
     .post(`${customerApi}/orders`, data)
     .then((res) => {
       console.log(res);
+      orderInfoForm.reset();
     })
     .catch((err) => {
       console.log("錯誤訊息：", err.response.data);
