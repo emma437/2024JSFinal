@@ -9,6 +9,7 @@ function getOrder() {
       //   console.log(res);
       orderData = res.data.orders;
       renderOrders();
+      calcProductCategory();
     })
     .catch((err) => {
       console.log(err);
@@ -66,7 +67,7 @@ function formatTime(timestamp) {
 //刪除全部購物車
 const disCardAllBtn = document.querySelector(".discardAllBtn");
 
-function deleteAllCart() {
+function deleteAllOrder() {
   Swal.fire({
     title: "Are you sure?",
     text: "You won't be able to revert this!",
@@ -94,7 +95,7 @@ function deleteAllCart() {
 disCardAllBtn.addEventListener("click", (e) => {
   e.preventDefault();
   // console.log();
-  deleteAllCart();
+  deleteAllOrder();
 });
 
 //刪除單筆訂單
@@ -135,6 +136,25 @@ function updateOrderStatus(id) {
     });
 }
 
+//LV1  - 全產品類別營收比重
+//組成資料
+function calcProductCategory() {
+  const resultObj = {};
+  orderData.forEach((order) => {
+    // console.log(order)
+    order.products.forEach((product) => {
+      if (resultObj[product.category] === undefined) {
+        //初始值(一開始是空物件)
+        resultObj[product.category] = product.price * product.quantity;
+      }else{
+        resultObj[product.category] += product.price * product.quantity;
+
+      }
+    });
+  });
+  renderChat(Object.entries(resultObj));
+  
+}
 
 orderPageTableBody.addEventListener("click", (e) => {
   e.preventDefault();
@@ -155,22 +175,22 @@ function init() {
 
 init();
 
-// C3.js
-let chart = c3.generate({
-  bindto: "#chart", // HTML 元素綁定
-  data: {
-    type: "pie",
-    columns: [
-      ["Louvre 雙人床架", 1],
-      ["Antony 雙人床架", 2],
-      ["Anty 雙人床架", 3],
-      ["其他", 4],
-    ],
-    colors: {
-      "Louvre 雙人床架": "#DACBFF",
-      "Antony 雙人床架": "#9D7FEA",
-      "Anty 雙人床架": "#5434A7",
-      其他: "#301E5F",
+// C3.js 渲染圖表
+function renderChat(data) {
+  let chart = c3.generate({
+    bindto: "#chart", // HTML 元素綁定
+    color: {
+      pattern: ["#DACBFF", "#9D7FEA", "#5434A7", "#301E5F"],
     },
-  },
-});
+    data: {
+      type: "pie",
+      columns: data,
+      // colors: {
+      //   "Louvre 雙人床架": "#DACBFF",
+      //   "Antony 雙人床架": "#9D7FEA",
+      //   "Anty 雙人床架": "#5434A7",
+      //   其他: "#301E5F",
+      // },
+    },
+  });
+}

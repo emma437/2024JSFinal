@@ -108,7 +108,7 @@ productWrap.addEventListener("click", (e) => {
 //刪除所有購物車內容
 const disCardAllBtn = document.querySelector(".discardAllBtn");
 
-function deleteAllCart() {
+function deleteAllOrder() {
   Swal.fire({
     title: "Are you sure?",
     text: "You won't be able to revert this!",
@@ -137,7 +137,7 @@ function deleteAllCart() {
 disCardAllBtn.addEventListener("click", (e) => {
   e.preventDefault();
   // console.log();
-  deleteAllCart();
+  deleteAllOrder();
 });
 
 //渲染購物車
