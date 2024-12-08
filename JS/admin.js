@@ -1,6 +1,12 @@
 //建立變數
 let orderData = [];
 const orderPageTableBody = document.querySelector(".orderPage-table tbody");
+
+// 排序
+function sortOrdersByDate(data) {
+    return data.sort((a, b) => b.createdAt - a.createdAt);
+  }
+
 //取得訂單
 function getOrder() {
   axios
@@ -8,6 +14,7 @@ function getOrder() {
     .then((res) => {
       //   console.log(res);
       orderData = res.data.orders;
+      orderData = sortOrdersByDate(orderData)
       renderOrders();
       calcProductCategory();
       calcProductTitle();
