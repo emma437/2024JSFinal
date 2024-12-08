@@ -10,6 +10,7 @@ function getOrder() {
       orderData = res.data.orders;
       renderOrders();
       calcProductCategory();
+      calcProductTitle();
     })
     .catch((err) => {
       console.log(err);
@@ -153,8 +154,45 @@ function calcProductCategory() {
     });
   });
   renderChat(Object.entries(resultObj));
+  }
+
+  //LV2全品項營收比重
+  function calcProductTitle() {
+    const resultObj = {};
+    orderData.forEach((order) => {
+      // console.log(order)
+      order.products.forEach((product) => {
+        if (resultObj[product.title] === undefined) {
+          //初始值(一開始是空物件)
+          resultObj[product.title] = product.price * product.quantity;
+        }else{
+          resultObj[product.title] += product.price * product.quantity;
   
-}
+        }
+      });
+    });
+    const resultArr = Object.entries(resultObj);
+    const sortResultArr = resultArr.sort((a,b) =>{
+        return b[1]-a[1];
+    });
+    const rankOfThree = [];
+    let otherTotal = 0;
+    sortResultArr.forEach((title,index) =>{
+        //取得0, 1, 2的值
+        if(index <=2){
+            rankOfThree.push(title);
+        }
+        if(index>2){
+            otherTotal += title[1];
+        }
+        if(sortResultArr.length > 3){
+            rankOfThree.push(['其他', otherTotal])
+        }
+    })
+
+    // console.log(rankOfThree,otherTotal );
+    renderChat(rankOfThree);
+    }
 
 orderPageTableBody.addEventListener("click", (e) => {
   e.preventDefault();
